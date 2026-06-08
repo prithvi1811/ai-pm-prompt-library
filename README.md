@@ -77,14 +77,3 @@ you: prioritization, stakeholder alignment, customer conversations.
 5. The final node extracts the model's markdown so it can be piped onward, for
    example by adding a Slack, Notion, or Jira node after it to post the result
    directly where the team works. That's the obvious next version of this project.
-
-## What I'd build next
-Swap the Manual Trigger for a Webhook so the user-story workflow can be called
-from a Slack `/story` command, and so the summarizer can be triggered
-automatically by a meeting-recording tool like Zoom, Otter, or Fireflies.
-
-I'd also add a lightweight eval step: run each prompt against a fixed set of
-5 to 10 sample inputs and score the outputs against a rubric (does every action
-item have an owner or a flag, does every story have testable AC). That turns
-"I think this prompt is better" into a number, the same way you'd define success
-metrics for any feature.
