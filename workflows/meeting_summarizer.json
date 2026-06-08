@@ -1,0 +1,99 @@
+{
+  "id": "pm-prompt-lib-meeting-summarizer",
+  "name": "PM Prompt Library — Meeting Summarizer",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "b2f2f7b0-0001-4a1a-9c1a-000000000001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1",
+              "name": "transcript",
+              "value": "Paste your raw meeting transcript here (speaker-labelled text works best).",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2f2f7b0-0002-4a1a-9c1a-000000000002",
+      "name": "Sample Input (edit me)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-sonnet-4-6\",\n  max_tokens: 1500,\n  messages: [\n    {\n      role: \"user\",\n      content: `You are a PM producing a same-day recap from a raw meeting transcript. Be precise - do not invent decisions, owners, or dates that aren't in the transcript. If something is ambiguous (e.g., an action item with no clear owner), flag it instead of guessing.\n\nProduce the recap in exactly this structure:\n\n## Summary\n2-4 sentences: what was the meeting for, and what was the outcome at a high level.\n\n## Decisions made\n- Bullet list. Only include things the group explicitly agreed on. If none, write \"No firm decisions - see Open Questions.\"\n\n## Action items\n- [Owner - use \"UNASSIGNED\" if unclear] Action (Due: date if stated, else \"no date given\")\n\n## Open questions / follow-ups\n- Things raised but not resolved - these are what the PM needs to chase after the recap goes out.\n\nTranscript:\n\"\"\"\n${$json.transcript}\n\"\"\"`\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "id": "b2f2f7b0-0003-4a1a-9c1a-000000000003",
+      "name": "Claude — Summarize Meeting",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "Anthropic API Key (x-api-key header)"
+        }
+      },
+      "notes": "Header auth credential should send: x-api-key: <your Anthropic API key>"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "o1",
+              "name": "recap_markdown",
+              "value": "={{ $json.content[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2f2f7b0-0004-4a1a-9c1a-000000000004",
+      "name": "Extract Markdown Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Sample Input (edit me)", "type": "main", "index": 0 }]]
+    },
+    "Sample Input (edit me)": {
+      "main": [[{ "node": "Claude — Summarize Meeting", "type": "main", "index": 0 }]]
+    },
+    "Claude — Summarize Meeting": {
+      "main": [[{ "node": "Extract Markdown Output", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
